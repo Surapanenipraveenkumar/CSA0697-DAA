@@ -1,0 +1,112 @@
+#include <stdio.h>
+
+#define SIZE 4
+
+void add(int a[SIZE][SIZE], int b[SIZE][SIZE], int res[SIZE][SIZE], int n) {
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            res[i][j] = a[i][j] + b[i][j];
+}
+
+void subtract(int a[SIZE][SIZE], int b[SIZE][SIZE], int res[SIZE][SIZE], int n) {
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            res[i][j] = a[i][j] - b[i][j];
+}
+
+void strassen(int A[SIZE][SIZE], int B[SIZE][SIZE], int C[SIZE][SIZE], int n) {
+    if (n == 1) {
+        C[0][0] = A[0][0] * B[0][0];
+        return;
+    }
+    
+    int newSize = n / 2;
+    int A11[newSize][newSize], A12[newSize][newSize], A21[newSize][newSize], A22[newSize][newSize];
+    int B11[newSize][newSize], B12[newSize][newSize], B21[newSize][newSize], B22[newSize][newSize];
+    int M1[newSize][newSize], M2[newSize][newSize], M3[newSize][newSize], M4[newSize][newSize];
+    int M5[newSize][newSize], M6[newSize][newSize], M7[newSize][newSize];
+    int temp1[newSize][newSize], temp2[newSize][newSize];
+    
+    for (int i = 0; i < newSize; i++) {
+        for (int j = 0; j < newSize; j++) {
+            A11[i][j] = A[i][j];
+            A12[i][j] = A[i][j + newSize];
+            A21[i][j] = A[i + newSize][j];
+            A22[i][j] = A[i + newSize][j + newSize];
+            
+            B11[i][j] = B[i][j];
+            B12[i][j] = B[i][j + newSize];
+            B21[i][j] = B[i + newSize][j];
+            B22[i][j] = B[i + newSize][j + newSize];
+        }
+    }
+    
+    add(A11, A22, temp1, newSize);
+    add(B11, B22, temp2, newSize);
+    strassen(temp1, temp2, M1, newSize);
+    
+    add(A21, A22, temp1, newSize);
+    strassen(temp1, B11, M2, newSize);
+    
+    subtract(B12, B22, temp2, newSize);
+    strassen(A11, temp2, M3, newSize);
+    
+    subtract(B21, B11, temp2, newSize);
+    strassen(A22, temp2, M4, newSize);
+    
+    add(A11, A12, temp1, newSize);
+    strassen(temp1, B22, M5, newSize);
+    
+    subtract(A21, A11, temp1, newSize);
+    add(B11, B12, temp2, newSize);
+    strassen(temp1, temp2, M6, newSize);
+    
+    subtract(A12, A22, temp1, newSize);
+    add(B21, B22, temp2, newSize);
+    strassen(temp1, temp2, M7, newSize);
+    
+    add(M1, M4, temp1, newSize);
+    subtract(temp1, M5, temp2, newSize);
+    add(temp2, M7, C11, newSize);
+    
+    add(M3, M5, C12, newSize);
+    
+    add(M2, M4, C21, newSize);
+    
+    subtract(M1, M2, temp1, newSize);
+    add(M3, M6, temp2, newSize);
+    add(temp1, temp2, C22, newSize);
+    
+    for (int i = 0; i < newSize; i++) {
+        for (int j = 0; j < newSize; j++) {
+            C[i][j] = C11[i][j];
+            C[i][j + newSize] = C12[i][j];
+            C[i + newSize][j] = C21[i][j];
+            C[i + newSize][j + newSize] = C22[i][j];
+        }
+    }
+}
+
+int main() {
+    int A[SIZE][SIZE] = { {1, 2, 3, 4},
+                          {5, 6, 7, 8},
+                          {9, 10, 11, 12},
+                          {13, 14, 15, 16} };
+    int B[SIZE][SIZE] = { {16, 15, 14, 13},
+                          {12, 11, 10, 9},
+                          {8, 7, 6, 5},
+                          {4, 3, 2, 1} };
+    int C[SIZE][SIZE];
+    
+    strassen(A, B, C, SIZE);
+    
+    printf("Result matrix:\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            printf("%d ", C[i][j]);
+        }
+        printf("\n");
+    }
+    
+    return 0;
+}
